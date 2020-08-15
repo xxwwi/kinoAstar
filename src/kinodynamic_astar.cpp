@@ -51,15 +51,4 @@ namespace KinoAstar_planner {
             ROS_WARN("This planner has already been initialized, you can't call it twice, doing nothing");
 
     }
-
-
-
-
-
-
-
-
-
-
-
 }
