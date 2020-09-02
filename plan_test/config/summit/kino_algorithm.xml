@@ -1,0 +1,58 @@
+<launch>
+  <!--<arg name="map_size_x_"/>
+  <arg name="map_size_y_"/>
+  <arg name="map_size_z_"/>
+
+  <arg name="odometry_topic"/>
+  <arg name="camera_pose_topic"/>
+  <arg name="depth_topic"/>
+  <arg name="cloud_topic"/>
+
+  <arg name="cx"/>
+  <arg name="cy"/>
+  <arg name="fx"/>
+  <arg name="fy"/>
+
+  <arg name="max_vel"/>
+  <arg name="max_acc"/>
+
+  <arg name="point_num"/>
+  <arg name="point0_x"/>
+  <arg name="point0_y"/>
+  <arg name="point0_z"/>
+  <arg name="point1_x"/>
+  <arg name="point1_y"/>
+  <arg name="point1_z"/>
+  <arg name="point2_x"/>
+  <arg name="point2_y"/>
+  <arg name="point2_z"/>
+
+  <arg name="flight_type"/>-->
+
+  <!-- main node -->
+  <!--<node pkg="KinoAstar_planner" name="kinodynamicPlanner" type="kinodynamicPlanner" output="screen">-->
+
+
+    <!-- replanning method -->
+    <!--<param name="planner_node/planner" value="1" type="int"/>-->
+
+
+  <!-- kinodynamic path searching -->
+    <param name="search/max_tau" value="0.6" type="double"/>
+    <param name="search/init_max_tau" value="0.8" type="double"/>
+    <param name="search/max_vel" value="0.8" type="double"/>
+    <param name="search/max_acc" value="0.5" type="double"/>
+    <param name="search/w_time" value="10.0" type="double"/>
+    <param name="search/horizon" value="7.0" type="double"/>
+    <param name="search/lambda_heu" value="5.0" type="double"/>
+    <!--<param name="search/resolution_astar" value="0.1" type="double"/>-->
+    <param name="search/time_resolution" value="0.8" type="double"/>
+    <param name="search/margin" value="0.2" type="double"/>
+    <param name="search/allocate_num" value="100000" type="int"/>
+    <param name="search/check_num" value="5" type="int"/>
+    <param name="search/unknown" value="false" type="bool"/>
+
+  
+  <!--</node>-->
+
+</launch>

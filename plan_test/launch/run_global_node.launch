@@ -1,0 +1,37 @@
+<launch>
+    <!--robot-->
+    <param name="robot_description" command="$(find xacro)/xacro.py '$(find little_car)/urdf/scout.xacro'"/>
+
+    <node name="arbotix" pkg="arbotix_python" type="arbotix_driver" output="screen" clear_params="true">
+      <rosparam file="$(find plan_test)/config/fake_turtlebot_arbotix.yaml" command="load" />
+      <param name="sim" value="true"/>
+    </node>
+
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    </node>
+
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" >
+    <param name="publish_frequency" type="double" value="50.0" />
+    </node>
+
+    <arg name="map" default="corridor.yaml" />
+    
+        
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find plan_test)/maps/$(arg map)"/>
+    <node pkg="plan_test" type="global_test_node" respawn="false" name="plan_test" output="screen" clear_params="true">
+    <rosparam file="$(find plan_test)/config/summit/costmap_common_params.yaml" command="load" ns="global_costmap" />-->
+    <rosparam file="$(find plan_test)/config/summit/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find plan_test)/config/summit/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find plan_test)/config/summit/global_costmap_params.yaml" command="load" />
+        <!--<rosparam file="$(find plan_test)/config/summit/move_base_params.yaml" command="load" />-->
+    <rosparam file="$(find plan_test)/config/summit/kino_planner_params.yaml" command="load" />
+    </node>
+    <include file="$(find little_car_navigation)/launch/amcl_omni.launch" />
+
+
+    <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="0 0 0 0 0 0 /map /odom 100" />
+
+    <!-- 运行rviz -->
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find plan_test)/rviz/nav.rviz"/>
+    
+</launch>

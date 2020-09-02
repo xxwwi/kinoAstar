@@ -1,0 +1,23 @@
+global_costmap:
+
+  global_frame: map #参考系
+  robot_base_frame: base_link
+
+  update_frequency: 2.0 #全局地图信息更新频率
+  publish_frequency: 2.0 #发布可视化信息的频率
+  static_map: true
+  rolling_window: false #是否需要滚动窗口
+  transform_tolerance: 1.0
+  plugins:
+    - {name: static_layer, type: "costmap_2d::StaticLayer"}
+    - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"}
+    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+
+  ## 代价地图的长、高、分辨率
+  # width: 100.0 
+  # height: 100.0
+  # resolution: 0.1
+
+#  robot_base_frame: base_footprint
+#  rolling_window: false
+
