@@ -129,6 +129,9 @@ void KinoAstarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costm
 
 		//--------------new--------------------
         //ros::NodeHandle nh;
+        data_vel << 0.0, 0.0, 0.0;
+        data_acc << 0.0, 0.0, 0.0;
+        acc_flag = false;
 		kino_planner_ = new KinodynamicAstar();
 		kino_planner_->setParam(private_nh);
 		kino_planner_->setEnvironment(costmap_);
@@ -165,6 +168,10 @@ void KinoAstarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costm
                 &KinoAstarPlanner::reconfigureCB, this, _1, _2);
         dsrv_->setCallback(cb);
 
+        ros::NodeHandle nh;
+
+        odom_sub_ = nh.subscribe<nav_msgs::Odometry>("odom", 1, boost::bind(&KinoAstarPlanner::odomCB, this, _1));
+
         initialized_ = true;
     } else
         ROS_WARN("This planner has already been initialized, you can't call it twice, doing nothing");
@@ -190,6 +197,8 @@ void KinoAstarPlanner::reconfigureCB(KinoAstar_planner::KinoAstarPlannerConfig& 
     kino_planner_->setTimeResolution(config.time_resolution);
     kino_planner_->setLambdaHeu(config.lambda_heu);
     kino_planner_->setCheckNum(config.check_num);
+    kino_planner_->setCeffi(config.c_effi);
+
 }
 
 void KinoAstarPlanner::clearRobotCell(const tf::Stamped<tf::Pose>& global_pose, unsigned int mx, unsigned int my) {
@@ -271,6 +280,7 @@ bool KinoAstarPlanner::makePlan(const geometry_msgs::PoseStamped& start, const g
 
     double wx = start.pose.position.x;
     double wy = start.pose.position.y;
+    // cout<<"acc_flag "<<acc_flag<<endl;
     cout<<"start position from planner code "<<wx<<" "<<wy<<endl;
 
     unsigned int start_x_i, start_y_i, goal_x_i, goal_y_i;
@@ -328,26 +338,41 @@ bool KinoAstarPlanner::makePlan(const geometry_msgs::PoseStamped& start, const g
 	//Eigen::Vector3d start_pt, start_vel, start_acc, goal_pt, goal_vel;
 	//??????????start_pt << start_x << start_y << 0.0;
 	Eigen::Vector3d start_pt(start.pose.position.x, start.pose.position.y, 0.0);
-	Eigen::Vector3d goal_pt(goal.pose.position.x, goal.pose.position.y, 0.0);
-	Eigen::Vector3d start_vel(0.0, 0.0, 0.0);
-	Eigen::Vector3d start_acc(0.0, 0.0, 0.0);
+	Eigen::Vector3d goal_pt(goal.pose.position.x, goal.pose.position.y, 0.0);	
 	Eigen::Vector3d goal_vel(0.0, 0.0, 0.0);
+    Eigen::Vector3d start_vel;
+    Eigen::Vector3d start_acc;
 
-	if ((start_pt - goal_pt).norm() < 0.2) {
-		cout << "Close goal" << endl;
-		return false;
+    if(!acc_flag){
+        start_vel<<0.0, 0.0, 0.0;
+        start_acc<<0.0, 0.0, 0.0;
+    }
+    else{
+        start_vel = data_vel;
+        start_acc = data_acc;
+
+    }
+
+	if ((start_pt - goal_pt).norm() < 0.4) {
+		// cout << "Close goal" << endl;
+        plan.push_back(start);
+        plan.push_back(goal);
+        publishPlan(plan);
+		return true;
 	}
 	
     kino_planner_->reset();
 
 	int status = kino_planner_->search(start_pt, start_vel, start_acc, goal_pt, goal_vel, true);
+    // cout<<"acc "<<start_acc(0)<<" "<<start_acc(1)<<endl;
+    // cout<<"odom_acc "<<data_acc(0)<<" "<<data_acc(1)<<endl;
 	if (status == KinodynamicAstar::NO_PATH) {
 		cout << "[kino plan]: kinodynamic search fail!" << endl;
 
 		// retry searching with discontinuous initial state
 		kino_planner_->reset();
 		status = kino_planner_->search(start_pt, start_vel, start_acc, goal_pt, goal_vel, false);
-
+        //status = KinodynamicAstar::NO_PATH;
 		if (status == KinodynamicAstar::NO_PATH) {
 			cout << "[kino replan]: Can't find path." << endl;
 			return false;
@@ -360,6 +385,8 @@ bool KinoAstarPlanner::makePlan(const geometry_msgs::PoseStamped& start, const g
 	else {
 		cout << "[kino replan]: kinodynamic search success." << endl;
 	}
+
+    acc_flag = true;
 
     
 
@@ -498,7 +525,31 @@ bool KinoAstarPlanner::getPlanFromPotential(double start_x, double start_y, doub
     return !plan.empty();
 }
 
+void KinoAstarPlanner::odomCB(const nav_msgs::Odometry::ConstPtr &odom){
+    double cur_t = odom->header.stamp.toSec();
+    Eigen::Vector3d cur_v;
+    cur_v(0) = odom->twist.twist.linear.x;
+    cur_v(1) = odom->twist.twist.linear.y;
+    cur_v(2) = 0;
+    // cout<<"cur_v"<<cur_v(0)<<" "<<cur_v(1)<<endl;
+    data_acc(0) = (cur_v(0) - data_vel(0))/(cur_t - acc_time);
+    data_acc(1) = (cur_v(1) - data_vel(1))/(cur_t - acc_time);
+    data_acc(2) = 0;
+    if(data_acc(0) < 1e-3){
+        data_acc(0) = 0;
+    }
+    if(data_acc(1) < 1e-3){
+        data_acc(1) = 0;
+    }
+    // cout<<"cur_a"<<data_acc(0)<<" "<<data_acc(1)<<endl;
 
+    data_vel(0) = cur_v(0);
+    data_vel(1) = cur_v(1);
+    data_vel(2) = cur_v(2);
+
+    acc_time = cur_t;
+
+}
 
 
 

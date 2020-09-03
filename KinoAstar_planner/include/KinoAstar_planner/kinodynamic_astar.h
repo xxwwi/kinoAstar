@@ -145,6 +145,7 @@ private:
   unsigned char* costs;
   unsigned char lethal_cost_;
   bool unknown_;
+  double c_effi_;
 
 
   /* helper */
@@ -161,6 +162,7 @@ private:
   /* state propagation */
   void stateTransit(Eigen::Matrix<double, 6, 1>& state0, Eigen::Matrix<double, 6, 1>& state1,
                     Eigen::Vector3d um, double tau);
+  double collisioncost(PathNodePtr cur_node, double t, Eigen::Vector3d um);
 
 public:
   KinodynamicAstar(){};
@@ -204,6 +206,9 @@ public:
   };
   void setCheckNum(int check_num){
     check_num_ = check_num;
+  };
+  void setCeffi(double c_effi){
+    c_effi_ = c_effi;
   };
 //   void setEnvironment(const EDTEnvironment::Ptr& env);
 

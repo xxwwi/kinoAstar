@@ -14,7 +14,7 @@
     <param name="publish_frequency" type="double" value="50.0" />
     </node>
 
-    <arg name="map" default="corridor.yaml" />
+    <arg name="map" default="cube.yaml" />
     
         
     <node name="map_server" pkg="map_server" type="map_server" args="$(find plan_test)/maps/$(arg map)"/>

@@ -43,6 +43,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Point.h>
 #include <nav_msgs/Path.h>
+#include <nav_msgs/Odometry.h>
 #include <tf/transform_datatypes.h>
 #include <vector>
 #include <nav_core/base_global_planner.h>
@@ -159,16 +160,24 @@ class KinoAstarPlanner : public nav_core::BaseGlobalPlanner {
         ros::Publisher potential_pub_;
         int publish_scale_;
 
+        ros::Subscriber odom_sub_;
+
         void outlineMap(unsigned char* costarr, int nx, int ny, unsigned char value);
         unsigned char* cost_array_;
         float* potential_array_;
         unsigned int start_x_, start_y_, end_x_, end_y_;
+
+        // Eigen::Vector3d data_vel(0.0, 0.0, 0.0), data_acc(0.0, 0.0, 0.0);
+        Eigen::Vector3d data_vel, data_acc;
+        bool acc_flag;
+        double acc_time = ros::Time::now().toSec();
 
         bool old_navfn_behavior_;
         float convert_offset_;
 
         dynamic_reconfigure::Server<KinoAstar_planner::KinoAstarPlannerConfig> *dsrv_;
         void reconfigureCB(KinoAstar_planner::KinoAstarPlannerConfig &config, uint32_t level);
+        void odomCB(const nav_msgs::Odometry::ConstPtr &odom);
 
 };
 }
